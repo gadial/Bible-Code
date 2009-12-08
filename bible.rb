@@ -1,3 +1,8 @@
+class Array
+  def choose_at_random
+    self[rand(length)]
+  end
+end
 class String
   def clean
     split("").reject{|x| not x=~/[a-zA-Z]/}.join("").downcase
@@ -124,12 +129,16 @@ class Organizer
   def inspect
     self.words.inspect
   end
+  def get_random_els
+      self.words.to_arr.choose_at_random.last.choose_at_random
+  end
 end
 
 o = Organizer.from_file("alice.txt")
 o.read_words_from_file("words.txt")
 # puts 
 puts o.words_found.inspect
+puts o.get_random_els
 
 
 
