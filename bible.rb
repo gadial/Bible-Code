@@ -1,6 +1,21 @@
+
 class Array
   def choose_at_random
     self[rand(length)]
+  end
+  def pairs
+    result = []
+    each_index do |i|
+      for j in 0...i do
+	result << [self[i],self[j]]
+      end
+    end
+    result
+  end
+end
+class Hash
+  def key_pairs
+    keys.pairs
   end
 end
 class String
@@ -49,12 +64,15 @@ class Els
     end.min
   end
   def min_distance(rhs)
-    (0..20).collect{|d| [distance(rhs,d),d]}.sort.min
+    (1..50).collect{|d| [distance(rhs,d),d]}.sort.min
+  end
+  def <=>(rhs)
+    self.word <=> rhs.word
   end
 end
 
 class Text
-  @@default_els_color = 44
+  @@default_els_color = 45
   attr_accessor :text, :source
   def Text.from_file(filename)
     File.open(filename, "r"){|file| return Text.new(file.read)}
@@ -78,7 +96,7 @@ class Text
   end
   def find_min(word, max_jump)
     result = []
-    for d in 1..max_jump do
+    for d in 2..max_jump do
       regexp = Regexp.new(word.split("").collect{|s| s+"."*(d-1)}.join("")[0..-d])
       temp = @text.index(regexp)
       while temp != nil
@@ -90,7 +108,7 @@ class Text
     return []
   end
   def show(from, to, jump, els_array)
-    base_color = 41
+    base_color = 43
     column = 0
     for i in from..to do
       temp = els_array.find{|els| els.include?(i)}
@@ -104,6 +122,9 @@ class Text
       end
     end
     puts unless column == 0
+  end
+  def to_s
+    @text
   end
 end
 
@@ -129,16 +150,49 @@ class Organizer
   def inspect
     self.words.inspect
   end
+  def min_distance(word_1,word_2)
+    els_1 = self.words[word_1]
+    els_2 = self.words[word_2]
+    return nil if els_1 == nil or els_2 == nil
+    distances = []
+    els_1.each{|e1| els_2.each{|e2| distances << [e1.min_distance(e2),e1,e2]}}
+    return distances.min{|a,b| a[0] <=> b[0]}
+  end
+  def show_word_pair(word_1, word_2, d = nil)
+      distance_info = min_distance(word_1,word_2)
+      els_1 = distance_info[1]
+      els_2 = distance_info[2]
+      d = [els_1.d, els_2.d,distance_info[0][1]].max if d == nil
+      self.text.show([els_1.start_point,els_2.start_point].min - 10,[els_1.end_point,els_2.end_point].max + 10,d,[els_1,els_2])
+  end
   def get_random_els
-      self.words.to_arr.choose_at_random.last.choose_at_random
+      self.words.to_a.choose_at_random.last.choose_at_random
+  end
+  def find_pair_distances
+    self.words.key_pairs.collect{|pair| [min_distance(pair[0],pair[1]),pair[0],pair[1]]}.sort
+  end
+  def color_word(word, color)
+    self.words[word].each{|els| els.color = color}
   end
 end
 
-o = Organizer.from_file("alice.txt")
-o.read_words_from_file("words.txt")
-# puts 
-puts o.words_found.inspect
-puts o.get_random_els
+
+
+#o = Organizer.from_file("alice.txt")
+#o.read_words_from_file("words.txt")
+# # puts 
+# puts o.words_found.inspect
+# o.find_pair_distances.find_all{|p| p[0][0][0] < 50}.each{|p| puts p.inspect}
+# o.color_word("obama",46)
+# o.show_word_pair("death","obama")
+# a = o.get_random_els
+# b = o.get_random_els
+# 
+# o.show_word_pair(a.word,b.word)
+# puts a.inspect
+# puts b.inspect
+# puts a.min_distance(b).inspect
+# puts o.min_distance(a.word,b.word).inspect
 
 
 
